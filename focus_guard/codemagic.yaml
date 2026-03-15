@@ -1,0 +1,35 @@
+workflows:
+  ios-workflow:
+    name: iOS Build & Publish
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Set up code signing
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files "com.focus.focus_guard" --type IOS_APP_STORE
+          keychain add-certificates
+          xcode-project use-profiles
+      - name: Get Flutter dependencies
+        script: |
+          flutter packages pub get
+      - name: Build iOS for App Store
+        script: |
+          flutter build ipa --release --verbose
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - build/ios/ipa/*.app.dSYM.zip
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_ID
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+      email:
+        recipients:
+          - ${CM_EMAIL}
+        notify:
+          success: true
+          failure: true
