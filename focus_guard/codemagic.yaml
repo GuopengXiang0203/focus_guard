@@ -7,18 +7,20 @@ workflows:
       xcode: latest
       cocoapods: default
     scripts:
-      - name: Find project and get dependencies
+      - name: Find project directory
         script: |
           PUBSPEC=$(find /Users/builder -name "pubspec.yaml" -type f 2>/dev/null | head -1)
           if [ -n "$PUBSPEC" ]; then
             PROJECT_DIR=$(dirname "$PUBSPEC")
-            cd "$PROJECT_DIR"
-            echo "Project dir: $PROJECT_DIR"
-            flutter pub get
+            echo "PROJECT_DIR=$PROJECT_DIR" >> $CM_ENV
           else
             echo "ERROR: Could not find pubspec.yaml"
             exit 1
           fi
+      - name: Get Flutter dependencies
+        script: |
+          cd $PROJECT_DIR
+          flutter pub get
       - name: Set up code signing
         script: |
           keychain initialize
@@ -27,16 +29,14 @@ workflows:
           xcode-project use-profiles
       - name: Build iOS for App Store
         script: |
-          PUBSPEC=$(find /Users/builder -name "pubspec.yaml" -type f 2>/dev/null | head -1)
-          PROJECT_DIR=$(dirname "$PUBSPEC")
-          cd "$PROJECT_DIR"
-          flutter build ipa --release --export-options-plist=/Users/builder/clone/ios/Runner.xcodeproj/ExportOptions.plist
+          cd $PROJECT_DIR
+          flutter build ipa --release
       - name: List build output
         script: |
-          find /Users/builder -name "*.ipa" -type f 2>/dev/null
+          find $PROJECT_DIR/build -name "*.ipa" -type f 2>/dev/null
+          ls -la $PROJECT_DIR/build/ios/ipa/ 2>/dev/null || echo "No ipa folder"
     artifacts:
-      - /Users/builder/**/build/ios/ipa/*.ipa
-      - /Users/builder/**/*.ipa
+      - $PROJECT_DIR/build/ios/ipa/*.ipa
       - build/ios/ipa/*.ipa
     publishing:
       app_store_connect:
