@@ -9,16 +9,11 @@ workflows:
     scripts:
       - name: Find project and get dependencies
         script: |
-          # 查找项目目录
-          echo "Looking for project..."
-          find /Users/builder -name "pubspec.yaml" -type f 2>/dev/null
-          
-          # 如果找到了，切换到该目录
           PUBSPEC=$(find /Users/builder -name "pubspec.yaml" -type f 2>/dev/null | head -1)
           if [ -n "$PUBSPEC" ]; then
             PROJECT_DIR=$(dirname "$PUBSPEC")
-            echo "Found project at: $PROJECT_DIR"
             cd "$PROJECT_DIR"
+            echo "Project dir: $PROJECT_DIR"
             flutter pub get
           else
             echo "ERROR: Could not find pubspec.yaml"
@@ -35,10 +30,14 @@ workflows:
           PUBSPEC=$(find /Users/builder -name "pubspec.yaml" -type f 2>/dev/null | head -1)
           PROJECT_DIR=$(dirname "$PUBSPEC")
           cd "$PROJECT_DIR"
-          flutter build ipa --release
+          flutter build ipa --release --export-options-plist=/Users/builder/clone/ios/Runner.xcodeproj/ExportOptions.plist
+      - name: List build output
+        script: |
+          find /Users/builder -name "*.ipa" -type f 2>/dev/null
     artifacts:
+      - /Users/builder/**/build/ios/ipa/*.ipa
+      - /Users/builder/**/*.ipa
       - build/ios/ipa/*.ipa
-      - build/ios/ipa/*.app.dSYM.zip
     publishing:
       app_store_connect:
         api_key: $APP_STORE_CONNECT_PRIVATE_KEY
