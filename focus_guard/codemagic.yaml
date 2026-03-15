@@ -7,6 +7,10 @@ workflows:
       xcode: latest
       cocoapods: default
     scripts:
+      - name: Check project structure
+        script: |
+          ls -la
+          pwd
       - name: Get Flutter dependencies
         script: |
           flutter pub get
@@ -27,9 +31,3 @@ workflows:
         api_key: $APP_STORE_CONNECT_PRIVATE_KEY
         key_id: $APP_STORE_CONNECT_KEY_ID
         issuer_id: $APP_STORE_CONNECT_ISSUER_ID
-      email:
-        recipients:
-          - ${CM_EMAIL}
-        notify:
-          success: true
-          failure: true
