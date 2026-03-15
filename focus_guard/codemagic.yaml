@@ -7,13 +7,14 @@ workflows:
       xcode: latest
       cocoapods: default
     scripts:
-      - name: Check project structure
+      - name: Debug - Check directory
         script: |
+          echo "Current directory: $(pwd)"
+          echo "Files:"
           ls -la
-          pwd
       - name: Get Flutter dependencies
         script: |
-          flutter pub get
+          flutter pub get --verbose
       - name: Set up code signing
         script: |
           keychain initialize
